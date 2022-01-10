@@ -32,18 +32,47 @@ onMounted(() => {
 	getGeolocation();
 });
 
-const coors = ref(null);
+const coords = ref(null);
 const fetchCoords = ref(null);
 const geoMarker = ref(null);
 
 const getGeolocation = () => {
-	fetchCoords.value = true;
-	navigator.geolocation.getCurrentPosition(setCoords, getLocError);
+	const getFromSessionStorage = sessionStorage.getItem('coords');
+	if (getFromSessionStorage) {
+		coords.value = JSON.parse(getFromSessionStorage);
+		plotGeolocation(coords.value);
+	} else {
+		fetchCoords.value = true;
+		navigator.geolocation.getCurrentPosition(setCoords, getLocError);
+	}
 };
 const setCoords = (pos) => {
-	console.log(pos);
+	fetchCoords.value = null;
+
+	const { latitude, longitude } = pos.coords;
+	const setSessionCoords = {
+		lat: latitude,
+		lon: longitude,
+	};
+	sessionStorage.setItem('coords', JSON.stringify(setSessionCoords));
+
+	coords.value = setSessionCoords;
+
+	plotGeolocation(coords.value);
 };
 const getLocError = (err) => {
 	console.log(err);
+};
+
+const plotGeolocation = ({ lat, lon }) => {
+	const customMarker = leaflet.icon({
+		iconUrl: '/map-marker-red.svg',
+		iconSize: [35, 35],
+	});
+	geoMarker.value = leaflet
+		.marker([lat, lon], { icon: customMarker })
+		.addTo(map);
+
+	map.setView([lat, lon], 10);
 };
 </script>
