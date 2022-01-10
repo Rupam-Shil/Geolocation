@@ -6,15 +6,13 @@ const cors = require('cors');
 
 const app = express();
 
+const searchResult = require('./routes/searchResult');
+
 // enable cors
 app.use(cors());
 
 // routes
-app.get('/api/search', (req, res) => {
-	res.json({
-		success: true,
-	});
-});
+app.use('/api/search', searchResult);
 
 app.listen(process.env.PORT, () => {
 	console.log(`Listening on port no ${process.env.PORT}`);
