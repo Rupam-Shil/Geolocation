@@ -1,5 +1,15 @@
 <template>
 	<div class="h-screen relative">
+		<GeoErrorModel
+			v-if="geoError"
+			:geoErrorMsg="geoErrorMsg"
+			@closModal="closeGeoError"
+		/>
+		<MapFeatures
+			:coords="coords"
+			:fetchCoords="fetchCoords"
+			@getGeolocation="getGeolocation"
+		/>
 		<div id="map" class="h-full z-[1]"></div>
 	</div>
 </template>
@@ -7,6 +17,8 @@
 <script setup>
 import leaflet from 'leaflet';
 import { ref, onMounted } from 'vue';
+import GeoErrorModel from '../components/GeoErrorModel.vue';
+import MapFeatures from '../components/MapFeatures.vue';
 
 let map;
 
@@ -35,8 +47,17 @@ onMounted(() => {
 const coords = ref(null);
 const fetchCoords = ref(null);
 const geoMarker = ref(null);
+const geoError = ref(null);
+const geoErrorMsg = ref(null);
 
 const getGeolocation = () => {
+	if (coords.value) {
+		coords.value = null;
+		sessionStorage.removeItem('coords');
+		map.removeLayer(geoMarker.value);
+		return;
+	}
+
 	const getFromSessionStorage = sessionStorage.getItem('coords');
 	if (getFromSessionStorage) {
 		coords.value = JSON.parse(getFromSessionStorage);
@@ -61,7 +82,9 @@ const setCoords = (pos) => {
 	plotGeolocation(coords.value);
 };
 const getLocError = (err) => {
-	console.log(err);
+	fetchCoords.value = null;
+	geoError.value = true;
+	geoErrorMsg.value = err.message;
 };
 
 const plotGeolocation = ({ lat, lon }) => {
@@ -74,5 +97,10 @@ const plotGeolocation = ({ lat, lon }) => {
 		.addTo(map);
 
 	map.setView([lat, lon], 10);
+};
+
+const closeGeoError = () => {
+	geoError.value = null;
+	geoErrorMsg.value = null;
 };
 </script>
