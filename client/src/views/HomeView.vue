@@ -9,6 +9,7 @@
 			:coords="coords"
 			:fetchCoords="fetchCoords"
 			@getGeolocation="getGeolocation"
+			@plotResult="plotResult"
 		/>
 		<div id="map" class="h-full z-[1]"></div>
 	</div>
@@ -102,5 +103,23 @@ const plotGeolocation = ({ lat, lon }) => {
 const closeGeoError = () => {
 	geoError.value = null;
 	geoErrorMsg.value = null;
+};
+
+const resultMarker = ref(null);
+const plotResult = (coords) => {
+	if (resultMarker.value) {
+		map.removeLayer(resultMarker.value);
+	}
+	const customMarker = leaflet.icon({
+		iconUrl: '/map-marker-blue.svg',
+		iconSize: [35, 35],
+	});
+	resultMarker.value = leaflet
+		.marker([coords.coordinates[0], coords.coordinates[1]], {
+			icon: customMarker,
+		})
+		.addTo(map);
+
+	map.setView([coords.coordinates[0], coords.coordinates[1]], 14);
 };
 </script>
